@@ -41,6 +41,14 @@ contract Token is ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable, P
         return _cap;
     }  
 
+    function pause() public onlyRole(DEFAULT_ADMIN_ROLE) {
+        _pause();
+    }
+
+    function unpause() public onlyRole(DEFAULT_ADMIN_ROLE) {
+        _unpause();
+    }
+
     /// @notice Modificador para validar transferências
     modifier beforeTransferCheck(address from, address to, uint256 amount) {
         require(!isBlacklisted(from) && !isBlacklisted(to), "Address is blacklisted");
