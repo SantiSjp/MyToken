@@ -1,0 +1,17 @@
+{
+  "type": "commonjs",
+  "name": "openrise",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/contracts": "^5.2.0",
+    "@openzeppelin/contracts-upgradeable": "^5.2.0",
+    "@openzeppelin/hardhat-upgrades": "^3.9.0",
+    "dotenv": "^16.4.7",
+    "hardhat": "^2.22.18",
+    "install": "^0.13.0",
+    "npm": "^11.0.0"
+  }
+}
