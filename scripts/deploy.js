@@ -1,18 +1,27 @@
+require("dotenv").config();
 const { ethers, upgrades } = require("hardhat");
 
 async function main() {
-    const initialSupply = ethers.parseUnits("1000000", 18); // 1 milhão de tokens
-    const cap = ethers.parseUnits("2000000", 18); // 2 milhões de tokens no máximo
-    const rewardRate = ethers.parseUnits("0.0001", 18); // Taxa de recompensa para staking
+    console.log("🚀 Deploying Token...");
 
-    console.log("🚀 Deployando VavaToken...");
+    // Parâmetros de inicialização do contrato
+    const tokenName = "TToken4";
+    const tokenSymbol = "TTT4";
+    const initialSupply = 1000000 // 1 milhão de tokens
+    const cap = 2000000 // 10 milhões de tokens como limite
 
-    const VavaToken = await ethers.getContractFactory("VavaToken");
-    const vavaToken = await upgrades.deployProxy(VavaToken, [initialSupply, cap], { initializer: "initialize" });
-    await vavaToken.waitForDeployment();
+    // Obter conta de deploy
+    const [deployer] = await ethers.getSigners();
+    console.log("📡 Deploying from:", deployer.address);
 
-    console.log("✅ VavaToken deployado!");
-    console.log("📍 Endereço do contrato VavaToken:", await vavaToken.getAddress());    
+    // Instanciar e fazer deploy do contrato upgradeável
+    const Token = await ethers.getContractFactory("Token");
+    const token = await upgrades.deployProxy(Token, [tokenName, tokenSymbol, initialSupply, cap], {
+        initializer: "initialize",
+    });
+
+    await token.waitForDeployment();
+    console.log("✅ Token deployed at:", await token.getAddress());
 }
 
 main().catch((error) => {
