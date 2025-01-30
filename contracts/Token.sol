@@ -7,9 +7,10 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "./Blacklistable.sol";
+import "./Stakable.sol";
 
 /// @title Token Upgradeável com Blacklist e Proteção contra Reentrância
-contract Token is ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable, Blacklistable {
+contract Token is ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable, Blacklistable, Stakable  {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     uint256 private _cap;
     mapping(address => uint256) private _lastTransactionTime;
@@ -29,6 +30,7 @@ contract Token is ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable, P
         __Pausable_init();
         __UUPSUpgradeable_init();
         __ReentrancyGuard_init();
+        __Stakable_init();
 
         _cap = cap_;
         _mint(msg.sender, initialSupply * 10 ** decimals());
@@ -49,6 +51,10 @@ contract Token is ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable, P
         _unpause();
     }
 
+    function getLastTransactionTime(address account) external view returns (uint256) {
+        return _lastTransactionTime[account];
+    }
+
     /// @notice Modificador para validar transferências
     modifier beforeTransferCheck(address from, address to, uint256 amount) {
         require(!isBlacklisted(from) && !isBlacklisted(to), "Address is blacklisted");
@@ -56,12 +62,12 @@ contract Token is ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable, P
     }
 
      /// @notice Transferência protegida com verificações
-    function transfer(address to, uint256 amount) public beforeTransferCheck(msg.sender, to, amount) override returns (bool) {
+    function transfer(address to, uint256 amount) public beforeTransferCheck(msg.sender, to, amount) whenNotPaused override returns (bool) {
         _lastTransactionTime[msg.sender] = block.timestamp;
         return super.transfer(to, amount);
     }
 
-    function transferFrom(address from, address to, uint256 amount) public beforeTransferCheck(from, to, amount) override returns (bool) {
+    function transferFrom(address from, address to, uint256 amount) public beforeTransferCheck(from, to, amount) whenNotPaused override returns (bool) {
         _lastTransactionTime[from] = block.timestamp;
         return super.transferFrom(from, to, amount);
     }

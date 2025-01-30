@@ -1,11 +1,15 @@
 const { expect } = require("chai");
 const { ethers, upgrades } = require("hardhat");
 
-describe("Token Contract", function () {
+describe("Token Contract Test", function () {
     let Token, token, owner, addr1, addr2, addr3;
 
-    const initialSupply = 1000000; // ✅ Passamos o número puro
-    const cap = ethers.parseUnits("5000000", 18); // ✅ Multiplicamos para 10^18
+    const initialSupply = 1000000;
+    const cap = ethers.parseUnits("5000000", 18);
+
+    // ✅ Definir as taxas de queima corretamente
+    const burnRateTx = 150; // 1.5% (Base 10000)
+    const burnRateStaking = 300; // 3% (Base 10000)
 
     beforeEach(async function () {
         [owner, addr1, addr2, addr3] = await ethers.getSigners();
@@ -14,8 +18,8 @@ describe("Token Contract", function () {
         token = await upgrades.deployProxy(Token, [
             "Test Token",
             "TST",
-            initialSupply, // ✅ O contrato já multiplica esse valor
-            cap // ✅ Passamos já multiplicado
+            initialSupply,
+            cap
         ], { initializer: "initialize" });
 
         await token.waitForDeployment();
@@ -24,12 +28,64 @@ describe("Token Contract", function () {
     it("Deve inicializar corretamente o contrato", async function () {
         expect(await token.name()).to.equal("Test Token");
         expect(await token.symbol()).to.equal("TST");
-
-        // ✅ Agora comparamos corretamente
         expect((await token.totalSupply()).toString()).to.equal(
             ethers.parseUnits(initialSupply.toString(), 18).toString()
         );
-
         expect((await token.cap()).toString()).to.equal(cap.toString());
+    });     
+
+    it("Deve impedir transações de endereços na blacklist", async function () {
+        await token.addToBlacklist(addr1.address);
+        await expect(token.connect(addr1).transfer(addr2.address, ethers.parseUnits("10", 18)))
+            .to.be.revertedWith("Address is blacklisted");
+    });
+
+    it("Deve pausar e despausar corretamente", async function () {
+        await token.pause();
+    
+        expect(await token.paused()).to.be.true;   
+    
+        await token.unpause();
+    
+        expect(await token.paused()).to.be.false;   
+    });
+
+    it("Deve impedir transferências quando pausado", async function () {
+        await token.pause();
+    
+        expect(await token.paused()).to.be.true;
+    
+        // ✅ Ajuste para verificar o erro correto
+        await expect(token.transfer(addr1.address, ethers.parseUnits("10", 18)))
+            .to.be.revertedWithCustomError(token, "EnforcedPause");
+    
+        await token.unpause();
+    
+        expect(await token.paused()).to.be.false;
+    
+        // ✅ Verifica que a transferência funciona após despausar
+        await expect(token.transfer(addr1.address, ethers.parseUnits("10", 18)))
+            .to.not.be.reverted;
+    });
+
+    it("Deve impedir minting acima do cap", async function () {
+        await expect(token.mint(addr1.address, cap)).to.be.revertedWith("Cap exceeded");
+    });
+
+    it("Deve permitir um administrador fazer mint corretamente", async function () {
+        await token.mint(addr1.address, ethers.parseUnits("1000", 18));
+        expect(await token.balanceOf(addr1.address)).to.equal(ethers.parseUnits("1000", 18));
+    });
+
+    it("Deve impedir minting por usuário sem permissão", async function () {
+        await expect(token.connect(addr1).mint(addr1.address, ethers.parseUnits("1000", 18)))
+    .to.be.revertedWithCustomError(token, "AccessControlUnauthorizedAccount");
+    });
+
+    it("Deve registrar corretamente o tempo da última transação", async function () {
+        await token.transfer(addr1.address, ethers.parseUnits("10", 18));    
+        await ethers.provider.send("evm_mine");    
+        const lastTxTime = await token.getLastTransactionTime(owner.address); 
+        expect(lastTxTime).to.be.above(0);
     });
 });
