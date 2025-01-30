@@ -4,9 +4,8 @@ pragma solidity ^0.8.28;
 import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "./Burnable.sol";
 
-abstract contract Stakable is Initializable, AccessControlUpgradeable, Burnable  {
+abstract contract Stakable is Initializable, AccessControlUpgradeable  {
     ERC20Upgradeable public stakingToken;
 
     struct StakeInfo {
@@ -26,7 +25,6 @@ abstract contract Stakable is Initializable, AccessControlUpgradeable, Burnable 
     function __Stakable_init() internal initializer {
         __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        __Burnable_init();
         stakingToken = ERC20Upgradeable(address(this));
         rewardRate = 10 * 1e16; // 10% ao ano (0.1 * 1e18)
     }
@@ -64,8 +62,6 @@ abstract contract Stakable is Initializable, AccessControlUpgradeable, Burnable 
 
         _stakes[msg.sender].lastUpdated = block.timestamp;
         _stakes[msg.sender].rewards = 0;
-
-        rewards = _burnOnStakingRewards(msg.sender, rewards);
 
         stakingToken.transfer(msg.sender, rewards);
         emit RewardsClaimed(msg.sender, rewards);

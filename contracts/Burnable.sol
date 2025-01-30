@@ -12,7 +12,6 @@ abstract contract Burnable is Initializable, AccessControlUpgradeable, ERC20Upgr
     ERC20Upgradeable public burnToken;
 
     uint256 public constant TRANSACTION_BURN_RATE = 150; // 1.5% (Base 10000)
-    uint256 public constant STAKING_REWARD_BURN_RATE = 300; // 3% (Base 10000)
 
     event TokensBurned(address indexed from, uint256 amount);
 
@@ -31,15 +30,5 @@ abstract contract Burnable is Initializable, AccessControlUpgradeable, ERC20Upgr
             emit TokensBurned(sender, burnAmount);
         }
         return amount - burnAmount;
-    }
-
-    // Queima aplicada a recompensas do staking
-    function _burnOnStakingRewards(address recipient, uint256 rewards) internal returns (uint256) {
-        uint256 burnAmount = (rewards * STAKING_REWARD_BURN_RATE) / 10000;
-        if (burnAmount > 0) {
-            burnToken.transfer(address(0xdead), burnAmount);
-            emit TokensBurned(recipient, burnAmount);
-        }
-        return rewards - burnAmount;
-    }
+    }    
 }

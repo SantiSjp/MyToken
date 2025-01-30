@@ -8,9 +8,10 @@ import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "./Blacklistable.sol";
 import "./Stakable.sol";
+import "./Burnable.sol";
 
 /// @title Token Upgradeável com Blacklist e Proteção contra Reentrância
-contract Token is AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable, Blacklistable, Stakable  {
+contract Token is AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable, ERC20Upgradeable, Stakable, Burnable, Blacklistable  {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     uint256 private _cap;
     mapping(address => uint256) private _lastTransactionTime;
@@ -29,6 +30,7 @@ contract Token is AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable
         __ReentrancyGuard_init();       
         __ERC20_init(name, symbol);      
         __Stakable_init();              
+        __Burnable_init();
         __AccessControl_init();   
 
         _cap = cap_;
