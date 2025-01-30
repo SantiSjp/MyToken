@@ -10,7 +10,7 @@ import "./Blacklistable.sol";
 import "./Stakable.sol";
 
 /// @title Token Upgradeável com Blacklist e Proteção contra Reentrância
-contract Token is ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable, Blacklistable, Stakable  {
+contract Token is AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable, Blacklistable, Stakable  {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     uint256 private _cap;
     mapping(address => uint256) private _lastTransactionTime;
@@ -25,12 +25,11 @@ contract Token is ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable, P
     ) public initializer {
         require(cap_ > 0, "Cap must be greater than 0");
 
-        __ERC20_init(name, symbol);
-        __AccessControl_init();
-        __Pausable_init();
-        __UUPSUpgradeable_init();
-        __ReentrancyGuard_init();
-        __Stakable_init();
+        __Pausable_init();              
+        __ReentrancyGuard_init();       
+        __ERC20_init(name, symbol);      
+        __Stakable_init();              
+        __AccessControl_init();   
 
         _cap = cap_;
         _mint(msg.sender, initialSupply * 10 ** decimals());
@@ -64,11 +63,13 @@ contract Token is ERC20Upgradeable, AccessControlUpgradeable, UUPSUpgradeable, P
      /// @notice Transferência protegida com verificações
     function transfer(address to, uint256 amount) public beforeTransferCheck(msg.sender, to, amount) whenNotPaused override returns (bool) {
         _lastTransactionTime[msg.sender] = block.timestamp;
+        amount = _burnOnTransfer(msg.sender, amount);
         return super.transfer(to, amount);
     }
 
     function transferFrom(address from, address to, uint256 amount) public beforeTransferCheck(from, to, amount) whenNotPaused override returns (bool) {
         _lastTransactionTime[from] = block.timestamp;
+        amount = _burnOnTransfer(from, amount);
         return super.transferFrom(from, to, amount);
     }
 

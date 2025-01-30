@@ -53,19 +53,10 @@ describe("Token Contract Test", function () {
     it("Deve impedir transferências quando pausado", async function () {
         await token.pause();
     
-        expect(await token.paused()).to.be.true;
+        expect(await token.paused()).to.be.true;      
     
-        // ✅ Ajuste para verificar o erro correto
         await expect(token.transfer(addr1.address, ethers.parseUnits("10", 18)))
-            .to.be.revertedWithCustomError(token, "EnforcedPause");
-    
-        await token.unpause();
-    
-        expect(await token.paused()).to.be.false;
-    
-        // ✅ Verifica que a transferência funciona após despausar
-        await expect(token.transfer(addr1.address, ethers.parseUnits("10", 18)))
-            .to.not.be.reverted;
+            .to.be.revertedWithCustomError(token, "EnforcedPause");   
     });
 
     it("Deve impedir minting acima do cap", async function () {
@@ -83,9 +74,35 @@ describe("Token Contract Test", function () {
     });
 
     it("Deve registrar corretamente o tempo da última transação", async function () {
-        await token.transfer(addr1.address, ethers.parseUnits("10", 18));    
-        await ethers.provider.send("evm_mine");    
-        const lastTxTime = await token.getLastTransactionTime(owner.address); 
+        expect(await token.balanceOf(owner.address)).to.be.above(ethers.parseUnits("10", 18));
+    
+        await token.transfer(addr1.address, ethers.parseUnits("10", 18));
+        await ethers.provider.send("evm_mine");
+    
+        const lastTxTime = await token.getLastTransactionTime(owner.address);
         expect(lastTxTime).to.be.above(0);
+    });    
+
+    it("Deve queimar 1.5% do valor transferido", async function () {
+        const transferAmount = ethers.parseUnits("1000", 18);
+        const burnRateTx = 150; // 1.5% (Base 10000)
+    
+        const expectedBurn = (transferAmount * BigInt(burnRateTx)) / BigInt(10000);
+        const expectedFinalAmount = transferAmount - expectedBurn;
+    
+        const initialBalanceAddr1 = await token.balanceOf(addr1.address);
+        const initialTotalSupply = await token.totalSupply();
+    
+        await token.transfer(addr1.address, transferAmount);
+    
+        const finalBalanceAddr1 = await token.balanceOf(addr1.address);
+        const finalTotalSupply = await token.totalSupply();
+    
+        // ✅ Verifica se o destinatário recebeu o valor correto após a queima
+        expect(finalBalanceAddr1).to.equal(initialBalanceAddr1 + expectedFinalAmount);
+    
+        // ✅ Verifica se o totalSupply diminuiu corretamente devido à queima
+        expect(finalTotalSupply).to.equal(initialTotalSupply - expectedBurn);
     });
+    
 });

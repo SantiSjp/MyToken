@@ -5,7 +5,10 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 
-abstract contract Burnable is Initializable, AccessControlUpgradeable {
+import "hardhat/console.sol";
+
+
+abstract contract Burnable is Initializable, AccessControlUpgradeable, ERC20Upgradeable  {
     ERC20Upgradeable public burnToken;
 
     uint256 public constant TRANSACTION_BURN_RATE = 150; // 1.5% (Base 10000)
@@ -21,9 +24,10 @@ abstract contract Burnable is Initializable, AccessControlUpgradeable {
 
     // Queima aplicada a transações
     function _burnOnTransfer(address sender, uint256 amount) internal returns (uint256) {
-        uint256 burnAmount = (amount * TRANSACTION_BURN_RATE) / 10000;
+        uint256 burnAmount = (amount * TRANSACTION_BURN_RATE) / 10000;      
+
         if (burnAmount > 0) {
-            burnToken.transfer(address(0xdead), burnAmount);
+            _burn(sender, burnAmount);
             emit TokensBurned(sender, burnAmount);
         }
         return amount - burnAmount;
