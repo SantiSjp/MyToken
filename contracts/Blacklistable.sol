@@ -6,6 +6,7 @@ import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol"
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 /// @title Módulo de Blacklist
 /// @notice Permite adicionar e remover endereços da blacklist
@@ -17,6 +18,7 @@ abstract contract Blacklistable is AccessControlUpgradeable {
 
     /// @notice Adiciona um endereço à blacklist
     function addToBlacklist(address account) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        require(account != msg.sender, "Cannot blacklist admin");
         require(!_blacklist[account], "Address already blacklisted");
         _blacklist[account] = true;
         emit Blacklisted(account);
