@@ -44,7 +44,7 @@ contract Token is AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable
         __AccessControl_init();   
 
         _cap = cap_;
-        _mint(msg.sender, initialSupply * 10 ** decimals());
+        _mint(msg.sender, initialSupply);
 
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _grantRole(MINTER_ROLE, msg.sender);

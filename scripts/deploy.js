@@ -5,10 +5,10 @@ async function main() {
     console.log("🚀 Deploying Token...");
 
     // Parâmetros de inicialização do contrato
-    const tokenName = "TToken4";
-    const tokenSymbol = "TTT4";
-    const initialSupply = 1000000 // 1 milhão de tokens
-    const cap = 2000000 // 10 milhões de tokens como limite
+    const tokenName = "TokenTTT5";
+    const tokenSymbol = "TTT5";
+    const initialSupply = ethers.parseUnits("1000000", 18) // 1 milhão de tokens
+    const cap = ethers.parseUnits("2000000", 18) // 2 milhões de tokens como limite
 
     // Obter conta de deploy
     const [deployer] = await ethers.getSigners();
