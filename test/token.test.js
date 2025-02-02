@@ -4,8 +4,8 @@ const { ethers, upgrades } = require("hardhat");
 describe("Token Contract Test", function () {
     let Token, token, owner, addr1, addr2, addr3;
 
-    const initialSupply = 1000000;
-    const cap = ethers.parseUnits("5000000", 18);
+    const initialSupply = ethers.parseUnits("1000000", 18);
+    const cap = ethers.parseUnits("2000000", 18);
 
     // ✅ Definir as taxas de queima corretamente
     const burnRateTx = 150; // 1.5% (Base 10000)
@@ -28,9 +28,7 @@ describe("Token Contract Test", function () {
     it("Token - Deve inicializar corretamente o contrato", async function () {
         expect(await token.name()).to.equal("Test Token");
         expect(await token.symbol()).to.equal("TST");
-        expect((await token.totalSupply()).toString()).to.equal(
-            ethers.parseUnits(initialSupply.toString(), 18).toString()
-        );
+        expect((await token.totalSupply()).toString()).to.equal(initialSupply.toString());
         expect((await token.cap()).toString()).to.equal(cap.toString());
     });     
 

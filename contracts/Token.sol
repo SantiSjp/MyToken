@@ -7,10 +7,9 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
 import "./Blacklistable.sol";
-import "./Burnable.sol";
 
 /// @title Token Upgradeável com Blacklist e Proteção contra Reentrância
-contract Token is AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable, ERC20Upgradeable, Burnable, Blacklistable  {
+contract Token is AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable, ReentrancyGuardUpgradeable, ERC20Upgradeable, Blacklistable  {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     uint256 private _cap;
 
@@ -40,7 +39,6 @@ contract Token is AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable
         __Pausable_init();              
         __ReentrancyGuard_init();       
         __ERC20_init(name, symbol);      
-        __Burnable_init();
         __AccessControl_init();   
 
         _cap = cap_;
@@ -75,13 +73,11 @@ contract Token is AccessControlUpgradeable, UUPSUpgradeable, PausableUpgradeable
      /// @notice Transferência protegida com verificações
     function transfer(address to, uint256 amount) public beforeTransferCheck(msg.sender, to, amount) whenNotPaused override returns (bool) {
         _lastTransactionTime[msg.sender] = block.timestamp;
-        amount = _burnOnTransfer(msg.sender, amount);
         return super.transfer(to, amount);
     }
 
     function transferFrom(address from, address to, uint256 amount) public beforeTransferCheck(from, to, amount) whenNotPaused override returns (bool) {
         _lastTransactionTime[from] = block.timestamp;
-        amount = _burnOnTransfer(from, amount);
         return super.transferFrom(from, to, amount);
     }
 

@@ -4,8 +4,8 @@ const { ethers, upgrades } = require("hardhat");
 describe("Blacklistable Contract Test", function () {
     let Token, token, owner, addr1, addr2, addr3;
 
-    const initialSupply = 1000000;
-    const cap = ethers.parseUnits("5000000", 18);
+    const initialSupply = ethers.parseUnits("1000000", 18);
+    const cap = ethers.parseUnits("2000000", 18);
 
     // ✅ Definir as taxas de queima corretamente
     const burnRateTx = 150; // 1.5% (Base 10000)
