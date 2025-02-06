@@ -33,8 +33,7 @@ describe("Blacklistable Contract Test", function () {
 
     it("Blacklistable - Deve permitir transferência após remover da blacklist", async function () {
         await token.addToBlacklist(addr1.address);
-        await token.removeFromBlacklist(addr1.address);
-        
+        await token.removeFromBlacklist(addr1.address);        
         await token.transfer(addr1.address, ethers.parseUnits("100", 18));
 
         await expect(token.connect(addr1).transfer(addr2.address, ethers.parseUnits("10", 18)))
@@ -66,5 +65,4 @@ describe("Blacklistable Contract Test", function () {
         await expect(token.removeFromBlacklist(addr1.address))
             .to.be.revertedWith("Address is not blacklisted");
     });
-
 });
